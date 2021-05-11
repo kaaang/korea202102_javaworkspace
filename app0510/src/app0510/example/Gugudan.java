@@ -18,7 +18,12 @@ public class Gugudan extends JFrame{
 		
 		add(t_input);
 		add(bt);
-		bt.addActionListener(new GugudanEvent(t_input));
+		
+		GugudanEvent ge=null;
+		bt.addActionListener(ge = new GugudanEvent(t_input));
+		ge.callMe(5);
+		ge.callMe(3,"안녕");
+		ge.callMe(bt);
 		
 		
 		setSize(250, 200);
