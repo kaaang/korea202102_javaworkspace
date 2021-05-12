@@ -74,6 +74,8 @@ public class ChatClientA extends JFrame implements ActionListener, KeyListener{
 		if(e.getSource()==bt_open) {
 			cb = new ChatClientB(50,100,20,2400);
 			cb1 = new ChatClientB(80,80,80,2700);
+			
+			
 			cb.setArea2(area,cb1.area);
 			cb1.setArea2(area,cb.area);
 		}
