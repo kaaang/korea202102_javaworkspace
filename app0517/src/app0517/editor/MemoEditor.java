@@ -3,10 +3,16 @@ package app0517.editor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -64,6 +70,7 @@ public class MemoEditor extends JFrame{
 		 * 또한 내부 익명 클래스를 사용하면, 객체간 주소를 전달해야하는 불편함도 해소할 수 있다.
 		 * 즉 내부익명 클래스는 외부 클래의 멤버들을 자기꺼처럼 사용할 수 있다.
 		 * */
+		
 		item_open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -135,7 +142,65 @@ public class MemoEditor extends JFrame{
 	
 	
 	public void saveFileAs() {
-		
+		int res = chooser.showSaveDialog(this);
+		if(res == JFileChooser.APPROVE_OPTION) {
+			File file = chooser.getSelectedFile();
+			String target = file.getAbsolutePath();
+			StringReader sr=null;;
+			FileWriter fw = null;
+			BufferedReader br=null;;
+			BufferedWriter bw=null;;
+			try {
+				fw = new FileWriter(target);
+				sr = new StringReader(area.getText());
+				br = new BufferedReader(sr);
+				bw = new BufferedWriter(fw);
+				String data = null;
+				while(true) {
+					data = br.readLine();
+					System.out.println(data);
+					if(data == null)break;
+					bw.write(data+"\n");
+					bw.flush();//출력한 버퍼 비우기
+				}
+				
+				
+				
+				
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}finally {
+				if(fw != null) {
+					try {
+						fw.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				if(br != null) {
+					try {
+						br.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				if(bw != null) {
+					try {
+						bw.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			
+			
+			
+			
+			
+			
+			
+		}
 	}
 	
 	public static void main(String[] args) {
