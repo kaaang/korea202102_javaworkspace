@@ -32,6 +32,8 @@ public class GUICopy extends JFrame implements WindowListener, ActionListener{
 	JTextArea area;
 	JScrollPane scroll;
 	JButton bt_copy;
+	
+	
 	JFileChooser chooser; //파일 탐색기 창 객체
 	
 	FileInputStream fis;//파일 입력용
@@ -94,6 +96,7 @@ public class GUICopy extends JFrame implements WindowListener, ActionListener{
 	}
 	
 	public void saveFile() {
+//		int res = chooser.showOpenDialog(this);
 		int res = chooser.showSaveDialog(this);
 		if(res == JFileChooser.APPROVE_OPTION) {
 			//System.out.println("선택완료");
