@@ -1,0 +1,21 @@
+스키마 훔쳐오기
+테이블 복사 
+
+create database shoppingapp;
+
+use shoppingapp;
+
+create table topcategory
+as
+select * from shoppingmall.topcategory;
+
+create table subcategory
+as
+select * from shoppingmall.subcategory;
+
+create table product
+as
+select * from shoppingmall.product;
+
+delete from product;
+
