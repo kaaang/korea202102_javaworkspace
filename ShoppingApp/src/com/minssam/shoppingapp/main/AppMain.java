@@ -170,7 +170,7 @@ public class AppMain extends JFrame implements ActionListener{
 	
 	
 	//쿼리문이 DML인 경우
-	public void releases(PreparedStatement pstmt) {
+	public void release(PreparedStatement pstmt) {
 		if(pstmt != null) {
 			try {
 				pstmt.close();
@@ -180,7 +180,7 @@ public class AppMain extends JFrame implements ActionListener{
 		}
 	}
 	//select문도 있는경우
-	public void releases(PreparedStatement pstmt, ResultSet rs) {
+	public void release(PreparedStatement pstmt, ResultSet rs) {
 		if(pstmt != null) {
 			try {
 				pstmt.close();
