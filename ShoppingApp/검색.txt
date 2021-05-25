@@ -22,3 +22,19 @@ mysql> select product_id, sub_name, product_name, price, brand, detail, filename
 |          2 | Ring     | 은반지       | 500000 | 구찌       | 와따 비싸네잉 | 1621834468395.jpg |
 +------------+----------+--------------+--------+------------+---------------+-------------------+
 2 rows in set (0.00 sec)
+
+
+select product_id,top_name, sub_name, product_name, price, brand, detail,filename
+from topcategory t, subcategory s, product p
+where t.topcategory_id=s.topcategory_id and
+s.subcategory_id = p.subcategory_id and
+product_id=30;
+
+
+
+
+select product_id,top_name, sub_name, product_name, price, brand, detail,filename
+from topcategory t, subcategory s, product p
+where t.topcategory_id=s.topcategory_id and
+s.subcategory_id = p.subcategory_id and
+product_id=30;

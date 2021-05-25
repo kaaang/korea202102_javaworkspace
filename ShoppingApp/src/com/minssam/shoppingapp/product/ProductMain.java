@@ -12,6 +12,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -83,8 +85,8 @@ public class ProductMain extends Page{
 	JScrollPane table_scroll;
 	
 	JPanel p_east;
-	Choice ch_top2;
-	Choice ch_sub2;
+	JTextField t_top;
+	JTextField t_sub;
 	JTextField t_product_name2;
 	JTextField t_price2;
 	JTextField t_brand2;
@@ -93,11 +95,12 @@ public class ProductMain extends Page{
 	JButton bt_web2;
 	JButton bt_file2;
 	Canvas can2;
-	JButton bt_regist2;
+	JButton bt_del;
 	
 	JFileChooser chooser;
 	Toolkit kit=Toolkit.getDefaultToolkit();
 	Image image;//등록시 이미지 미리보기에 사용할 이미지
+	Image image2;
 	String filename;
 	
 	
@@ -105,6 +108,9 @@ public class ProductMain extends Page{
 	String[] columns= {"product_id","subcategory_id","product_name","price","brane","detail","filename"};
 	//레코드배열
 	String[][] records= {};
+	
+	int product_id;
+	String del_file;
 	
 	
 	public ProductMain(AppMain appMain) {
@@ -119,7 +125,7 @@ public class ProductMain extends Page{
 		t_brand = new JTextField();
 		t_detail = new JTextArea();
 		scroll = new JScrollPane(t_detail);
-		bt_web = new JButton("웹어서찾기");
+		bt_web = new JButton("웹에서찾기");
 		bt_file = new JButton("파일찾기");
 		can = new Canvas() {
 			//내부 익명 클래스는 외부 클래스의 멤버(변수,메서드)들을 내것처럼 접근 가능
@@ -162,23 +168,45 @@ public class ProductMain extends Page{
 			public Object getValueAt(int row, int col) {
 				return records[row][col];
 			}
+			@Override
+			//jtable의 각 셀의 값을 지정
+			//셀을 편집한 후, 엔터치는 순간 아래의 메서드 호출됨
+			public void setValueAt(Object value	, int row, int col) {
+				System.out.println(row+","+col+" 번째의 셀의 데이터는"+value+"로 바꿀게요");
+				records[row][col]=(String)value;
+				updateProduct();
+			}
+			
+			@Override
+			public boolean isCellEditable(int row, int col) {
+				if(col==0) {
+					return false;
+				}else {
+					return true;					
+				}
+			}
 		});
 		bt_excel = new JButton("엑셀등록");
 		table_scroll = new JScrollPane(table);
 		
 		
 		p_east = new JPanel();
-		ch_top2 = new Choice();
-		ch_sub2 = new Choice();
+		t_top = new JTextField();
+		t_sub = new JTextField();
 		t_product_name2 = new JTextField();
 		t_price2 = new JTextField();
 		t_brand2 = new JTextField();
 		t_detail2 = new JTextArea();
 		scroll2 = new JScrollPane(t_detail2);
-		bt_web2 = new JButton("웹어서찾기");
+		bt_web2 = new JButton("웹에서찾기");
 		bt_file2 = new JButton("파일찾기");
-		can2 = new Canvas();
-		bt_regist2 = new JButton("상품등록");
+		can2 = new Canvas() {
+			@Override
+			public void paint(Graphics g) {
+				g.drawImage(image2, 0, 0,180,180, can2);
+			}
+		};
+		bt_del = new JButton("상품삭제");
 		
 		chooser = new JFileChooser("D:\\korea202102_jsworkspace\\images\\rai");
 		
@@ -211,13 +239,13 @@ public class ProductMain extends Page{
 		
 		p_east.setPreferredSize(new Dimension(200, 700));
 		scroll2.setPreferredSize(new Dimension(180, 160));
-		ch_top2.setPreferredSize(d);
-		ch_sub2.setPreferredSize(d);
+		t_top.setPreferredSize(d);
+		t_sub.setPreferredSize(d);
 		t_product_name2.setPreferredSize(d);
 		t_price2.setPreferredSize(d);
 		t_brand2.setPreferredSize(d);
 		can2.setPreferredSize(new Dimension(180,180));
-		can2.setBackground(Color.CYAN);
+		can2.setBackground(Color.YELLOW);
 		
 		//조립
 		p_west.add(ch_top);
@@ -231,8 +259,8 @@ public class ProductMain extends Page{
 		p_west.add(can);
 		p_west.add(bt_regist);
 		
-		p_east.add(ch_top2);
-		p_east.add(ch_sub2);
+		p_east.add(t_top);
+		p_east.add(t_sub);
 		p_east.add(t_product_name2);
 		p_east.add(t_price2);
 		p_east.add(t_brand2);
@@ -240,7 +268,7 @@ public class ProductMain extends Page{
 		p_east.add(bt_web2);
 		p_east.add(bt_file2);
 		p_east.add(can2);
-		p_east.add(bt_regist2);
+		p_east.add(bt_del);
 		
 		add(p_west, BorderLayout.WEST);
 		add(p_east, BorderLayout.EAST);
@@ -283,8 +311,21 @@ public class ProductMain extends Page{
 		
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				regist();
-				getProductList();
+				
+				//유효선 체크 통과되면 아래의 두 메서드 호출
+				//숫자값을 문자로 입력할 경우 문제가 심각함
+				try {
+					Integer.parseInt(t_price.getText());
+					regist();
+					getProductList();
+				} catch (NumberFormatException e1) {
+					JOptionPane.showMessageDialog(ProductMain.this.getAppMain(), "가격은 숫자를 입력하세요");
+					t_price.setText("");
+					t_price.requestFocus();
+				}
+
+				
+				
 			}
 		});
 		
@@ -296,9 +337,45 @@ public class ProductMain extends Page{
 			}
 		});
 		
+		bt_search.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//검색을 안할경우 모든 데이터가 나오게
+				if(ch_category.getSelectedIndex()==0 && t_keyword.getText().length()==0) {
+					getProductList();
+				}else {
+					//검색을 하면 검색 결과만 나오게
+					getListBySearch();					
+				}
+			}
+		});
+		
+		
+		//테이블과 리스너 연결
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				getDetail();
+			}
+		});
+		
+		bt_del.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(JOptionPane.showConfirmDialog(ProductMain.this.getAppMain(), "삭제?")==JOptionPane.OK_OPTION) {
+					deleteProduct();
+				}
+			}
+		});
+		
+		
 		getTopList();
 		getProductList();
 	}
+	
+	
+
+	
 	
 	//왼쪽 영역의 TopCategory가져오기
 	public void getTopList() {
@@ -463,6 +540,9 @@ public class ProductMain extends Page{
 	
 	
 	public void regist() {
+		//유효셩 체크하기
+		
+		
 		PreparedStatement pstmt = null;
 		String sql = "insert into product(subcategory_id, product_name, price, brand, detail, filename)";
 		sql+=" values(?,?,?,?,?,?)";
@@ -556,12 +636,14 @@ public class ProductMain extends Page{
 			return;
 		}
 			
-		
-		
 		FileInputStream fis=null;
 		XSSFWorkbook workbook=null;
 		PreparedStatement pstmt = null;
+		Connection con = this.getAppMain().getCon();
+		
+		
 		try {
+			con.setAutoCommit(false);//자동 커밋을 막는다, 즉 커밋은 직접 주도하겠다.
 			fis = new FileInputStream(path);
 			//이 스트림을 통해 내부 데이터를 엑셀로 이해할 수 있도록 해석을 해야한다.
 			//엑셀 파일을 처리하기 위한 객체 XSSFWorkbook
@@ -608,8 +690,6 @@ public class ProductMain extends Page{
 				String sql = "insert into product(subcategory_id, product_name, price, brand, detail, filename)";
 				sql += " values(?,?,?,?,?,?)";
 				
-				Connection con = this.getAppMain().getCon();
-				con.setAutoCommit(false);//자동 커밋을 막는다, 즉 커밋은 직접 주도하겠다.
 				
 				pstmt = this.getAppMain().getCon().prepareStatement(sql);
 				pstmt.setInt(1, subcategory_id);
@@ -620,10 +700,10 @@ public class ProductMain extends Page{
 				pstmt.setString(6, filename);
 				
 				//퀴리실행
-				pstmt.executeUpdate();
+				int result = pstmt.executeUpdate();
 				
 			}
-			JOptionPane.showMessageDialog(this.getAppMain(), "엑셀 등록 성공");
+			con.commit();			JOptionPane.showMessageDialog(this.getAppMain(), "엑셀 등록 성공");
 			getProductList();
 			
 		} catch (FileNotFoundException e) {
@@ -632,6 +712,12 @@ public class ProductMain extends Page{
 			e.printStackTrace();
 		} catch (SQLException e) {
 			e.printStackTrace();
+			//이 영역이 만일 DML 실패에 의한 에러를 만난경우 실행된다면 roolback
+			try {
+				con.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 		}finally {
 			if(fis!=null) {
 				try {
@@ -644,6 +730,162 @@ public class ProductMain extends Page{
 			if(pstmt!=null) {
 				this.getAppMain().release(pstmt);
 			}
+			try {
+				con.setAutoCommit(true);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void getListBySearch() {
+		String category=ch_category.getSelectedItem();
+		String keyword = t_keyword.getText();
+		PreparedStatement pstmt=null;
+		ResultSet rs = null;
+		
+		String sql="select product_id, sub_name, product_name, price, brand, detail, filename";
+		sql +=" from subcategory s, product p";
+		sql +=" where s.subcategory_id=p.subcategory_id and "+category+" like '%"+keyword+"%' ";
+		
+		
+		try {
+			pstmt=this.getAppMain().getCon().prepareStatement(sql
+					,ResultSet.TYPE_SCROLL_INSENSITIVE
+					,ResultSet.CONCUR_READ_ONLY);
+			rs=pstmt.executeQuery();
+			rs.last();//커서를 마지막 레코드로 보냄
+			int total = rs.getRow();
+			
+			//jtable이 참조하고 있는 records라는 이차원 배열의 값을, rs를 이용하여서 갱신해보자
+			records=new String[total][columns.length];
+			
+			rs.beforeFirst();//커서 위치 제자리
+			int index=0;
+			while(rs.next()) {
+				records[index][0]=Integer.toString(rs.getInt("product_id"));
+				records[index][1]=rs.getString("sub_name");
+				records[index][2]=rs.getString("product_name");
+				records[index][3]=Integer.toString(rs.getInt("price"));
+				records[index][4]=rs.getString("brand");
+				records[index][5]=rs.getString("detail");
+				records[index][6]=rs.getString("filename");
+				index++;
+			}
+			//jtable갱신
+			table.updateUI();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally {
+			this.getAppMain().release(pstmt,rs);
+		}
+		
+//		System.out.println(sql);
+	}
+	
+	public void getDetail() {
+		//선택한 레콛의 product_id
+		product_id = Integer.parseInt((String)table.getValueAt(table.getSelectedRow(), 0));
+		
+//		table.getSelectedRow();//선택한 로우
+		
+		
+		
+		//문자열은 immuable 특징이 있기 때문에, 즉 문자열 상수이기 때문에 아래와 같이 sql문을 처리하면
+		//문자열 상수 5개가 생성된다, 즉 sql이 수정되는게 아니다
+		//따라서 좀더 메모리 효율을 생각한다면, 수정 가능한 문자열을 처리해야한다.
+		StringBuffer sb = new StringBuffer();
+		sb.append("select product_id,top_name, sub_name, product_name, price, brand, detail,filename");
+		sb.append(" from topcategory t, subcategory s, product p");
+		sb.append(" where t.topcategory_id=s.topcategory_id and");
+		sb.append(" s.subcategory_id = p.subcategory_id and");
+		sb.append(" product_id="+product_id);
+		
+		
+		System.out.println(sb.toString());
+		
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try {
+			pstmt=this.getAppMain().getCon().prepareStatement(sb.toString());
+			rs=pstmt.executeQuery();
+			
+			if(rs.next()) {
+				//우측 영역에 채워넣기
+				t_top.setText(rs.getString("top_name"));
+				t_sub.setText(rs.getString("sub_name"));
+				t_product_name2.setText(rs.getString("product_name"));
+				t_price2.setText(Integer.toString(rs.getInt("price")));
+				t_brand2.setText(rs.getString("brand"));
+				t_detail2.setText(rs.getString("detail"));
+				
+				del_file=rs.getString("filename");
+				
+				//우측 켄버스에 이미지 나오게
+				image2=kit.getImage("D:\\korea202102_javaworkspace\\ShoppingApp\\data\\"+rs.getString("filename"));
+				can2.repaint();
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally {
+			this.getAppMain().release(pstmt,rs);
+		}
+		
+	}
+	
+	public void deleteProduct() {
+		String sql="delete from product where product_id="+product_id;
+		
+		PreparedStatement pstmt = null;
+		try {
+			pstmt=this.getAppMain().getCon().prepareStatement(sql);
+			int result = pstmt.executeUpdate();
+			if(result > 0) {
+				//파일삭제 진행
+				File file=new File("D:\\korea202102_javaworkspace\\ShoppingApp\\data\\"+del_file);
+				file.delete();
+				getProductList();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally {
+			this.getAppMain().release(pstmt);
+		}
+	}
+	
+	//상품 한건 수정
+	public void updateProduct() {
+		String sql="update product set product_name=?,price=?,brand=?,deatil=?,filename=?";
+		sql+=" where product_id=?";
+		
+		PreparedStatement pstmt=null;
+		try {
+			pstmt=this.getAppMain().getCon().prepareStatement(sql);
+			
+			String product_name=(String)table.getValueAt(table.getSelectedRow(), 2);
+			int price=Integer.parseInt((String)table.getValueAt(table.getSelectedRow(), 3));
+			String brand=(String)table.getValueAt(table.getSelectedRow(), 4);
+			String detail=(String)table.getValueAt(table.getSelectedRow(), 5);
+			String filename=(String)table.getValueAt(table.getSelectedRow(), 6);
+			
+			pstmt.setString(1, product_name);
+			pstmt.setInt(2,price);
+			pstmt.setString(3, brand);
+			pstmt.setString(4, detail);
+			pstmt.setString(5, filename);
+			pstmt.setInt(6, product_id);
+			
+			int result=pstmt.executeUpdate();
+			if(result >0) {
+				JOptionPane.showMessageDialog(this.getAppMain(), "수정성공");
+			}else {
+				JOptionPane.showMessageDialog(this.getAppMain(), "수정실패");				
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally {
+			this.getAppMain().release(pstmt);
 		}
 	}
 	

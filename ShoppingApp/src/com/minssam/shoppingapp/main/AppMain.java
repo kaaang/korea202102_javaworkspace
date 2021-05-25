@@ -13,10 +13,12 @@ import java.sql.SQLException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import com.minssam.shoppingapp.config.ConfigMain;
 import com.minssam.shoppingapp.customer.CustomerMain;
+import com.minssam.shoppingapp.member.JoinForm;
 import com.minssam.shoppingapp.member.LoginForm;
 import com.minssam.shoppingapp.member.MemberMain;
 import com.minssam.shoppingapp.order.OrderMain;
@@ -31,7 +33,7 @@ public class AppMain extends JFrame implements ActionListener{
 	JPanel p_center;
 	
 	//페이지 선언
-	Page[] pages = new Page[6];
+	Page[] pages = new Page[7];
 	
 	/*
 	ProductMain productMain;
@@ -44,11 +46,17 @@ public class AppMain extends JFrame implements ActionListener{
 	
 	//데이터 베이스 관련
 	String driver="com.mysql.jdbc.Driver";
+	
+
+
+
 	String url="jdbc:mysql://localhost:3306/shoppingapp?characterEncoding=UTF-8";
 	String user="root";
 	String password="1234";
 	private Connection con;
 	//디폴트면 같은 패키지 내에서만 접근이 가능
+	
+	private boolean session=false; //세션이 true일때 인증받은 것이고, false일때는 미인증 간주
 	
 	
 
@@ -79,6 +87,7 @@ public class AppMain extends JFrame implements ActionListener{
 		pages[3] = new CustomerMain(this);
 		pages[4] = new LoginForm(this);
 		pages[5] = new ConfigMain(this);
+		pages[6] = new JoinForm(this);//회원가입 폼
 		
 		
 		//스타일
@@ -117,6 +126,12 @@ public class AppMain extends JFrame implements ActionListener{
 		}
 		
 		//보여주기
+		if(session == false) { //인증을 받지 않은 상태이므로 로그인을 디폴트로 보여주자
+			showHide(4);//제일 먼저 보여주고 싶은 페이지			
+		}else {
+			showHide(0);						
+		}
+		
 		setBounds(1600, 100, 1200, 700);
 		setVisible(true);
 		
@@ -131,13 +146,10 @@ public class AppMain extends JFrame implements ActionListener{
 		CustomButton bt = (CustomButton)obj;
 //		System.out.println(bt.getText());
 		
-		
-		for (int i = 0; i < pages.length; i++) {
-			if(bt.getId()==i) {
-				pages[i].setVisible(true);
-			}else {
-				pages[i].setVisible(false);				
-			}
+		if(session) {
+			showHide(bt.getId());			
+		}else {
+			JOptionPane.showMessageDialog(this, "로그인이 필요한 서비스 입니다.");
 		}
 	}
 
@@ -198,9 +210,24 @@ public class AppMain extends JFrame implements ActionListener{
 	}
 	
 	
+	public void showHide(int n) {
+		for (int i = 0; i < pages.length; i++) {
+			if(n==i) {
+				pages[i].setVisible(true);
+			}else {
+				pages[i].setVisible(false);				
+			}
+		}
+	}
 	
-	
-	
+	public boolean isSession() {
+		return session;
+	}
+
+
+	public void setSession(boolean session) {
+		this.session = session;
+	}
 	
 	public static void main(String[] args) {
 		new AppMain();
