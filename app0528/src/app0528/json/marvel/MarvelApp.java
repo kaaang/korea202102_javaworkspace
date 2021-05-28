@@ -1,0 +1,221 @@
+package app0528.json.marvel;
+//데이터를 읽어서 JTable로 출력해보기
+
+import java.awt.BorderLayout;
+import java.awt.Canvas;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Vector;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.table.AbstractTableModel;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+public class MarvelApp extends JFrame{
+	JTable table;
+	JScrollPane scroll;
+	
+	JPanel p_east;
+	Canvas can;
+	JTextField t_title;
+	JTextField t_date;
+	JTextField t_gorss;
+	JButton bt;
+	
+	FileReader reader;
+	
+	//이차원 배열보다 유연허게 데이터를 처리할 수 있는 Vector를 이용한 Jtable을 구현해본다.
+	Vector<JSONObject> data = new Vector<JSONObject>();
+	Vector<String> column = new Vector<String>();
+	
+	Toolkit kit=Toolkit.getDefaultToolkit();
+	
+	Image img;
+	
+	public MarvelApp() {
+		//컬럼
+		column.add("movie_id");
+		column.add("url");
+		column.add("title");
+		column.add("category_name");
+		column.add("release_date");
+		column.add("running_time");
+		column.add("budget");
+		column.add("gross");
+		
+		
+		table = new JTable(new AbstractTableModel() {
+			public int getRowCount() {
+				return data.size();
+			}
+			public int getColumnCount() {
+				return column.size();
+			}
+			public String getColumnName(int col) {
+				return column.get(col);
+			}
+			public Object getValueAt(int row, int col) {
+				
+				JSONObject json=data.get(row);
+				String value=null;
+				if(col==0) {
+					value=Long.toString((Long)json.get("movie_id"));
+				}else if(col==1) {
+					value=(String)json.get("url");
+				}else if(col==2) {
+					value=(String)json.get("title");
+				}else if(col==3) {
+					value=(String)json.get("category_name");
+				}else if(col==4) {
+					value=(String)json.get("release_date");
+				}else if(col==5) {
+					value=Long.toString((Long)json.get("running_time"));
+				}else if(col==6) {
+					value=(String)json.get("budget");
+				}else if(col==7) {
+					value=(String)json.get("gross");
+				}
+				return value;
+			}
+		});
+		scroll = new JScrollPane(table);
+		
+		p_east = new JPanel();
+		can = new Canvas() {
+			public void paint(Graphics g) {
+				g.drawImage(img, 0, 0, 240,270,can);
+			}
+		};
+		t_title = new JTextField(13);
+		t_date = new JTextField(13);
+		t_gorss = new JTextField(13);
+		bt = new JButton("Load");
+		
+		p_east.setPreferredSize(new Dimension(250, 600));
+		can.setPreferredSize(new Dimension(240, 270));
+		can.setBackground(Color.RED);
+		bt.setPreferredSize(new Dimension(200,25));
+		
+		
+		
+		add(scroll);
+		p_east.add(can);
+		p_east.add(t_title);
+		p_east.add(t_date);
+		p_east.add(t_gorss);
+		p_east.add(bt);
+		add(p_east,BorderLayout.EAST);
+		
+		
+		bt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				load();
+			}
+		});
+		
+		table.addMouseListener(new MouseAdapter() {
+			public void mouseReleased(MouseEvent e) {
+				//클릭한곳의 데이터를 추출해야한다.
+				String url = (String)table.getValueAt(table.getSelectedRow(), 1);
+				String title = (String)table.getValueAt(table.getSelectedRow(), 2);
+				String releases_date = (String)table.getValueAt(table.getSelectedRow(), 4);
+				String gross = (String)table.getValueAt(table.getSelectedRow(), 7);
+				
+				t_title.setText(title);
+				t_date.setText(releases_date);
+				t_gorss.setText(gross);
+				
+				System.out.println(url);
+				drawImage(url);
+			}
+		});
+		
+		
+		
+		setVisible(true);
+		setBounds(2100,100,850,600);
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+	}
+	
+	//선택한 영화의 url을 이용하여, canvas에 이미지 그려넣기
+	public void drawImage(String path) {
+		URL url;
+		try {
+			url = new URL(path);
+			img = kit.getImage(url);
+			can.repaint();
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void load() {
+		try {
+			URL url = this.getClass().getClassLoader().getResource("kk/marvel.json");
+			URI uri=url.toURI();
+			File file=new File(uri);
+			reader = new FileReader(file);
+			
+			//생성된 스트림을 이용하여 JSON을 파싱해보자
+			JSONParser jsonParser = new JSONParser();
+			JSONObject obj=(JSONObject)jsonParser.parse(reader);//파싱시작
+			JSONArray movieArray=(JSONArray)obj.get("marvel");//영화 배열 받기
+			System.out.println("총 영화 수 : "+movieArray.size());
+			
+			for(int i=0;i<movieArray.size();i++) {
+				JSONObject movie=(JSONObject)movieArray.get(i);//영화 한편 반환
+				//data벡터에 영화 1편 넣기
+				data.add(movie);
+			}
+			table.updateUI();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally {
+			if(reader!=null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	
+	public static void main(String[] args) {
+		new MarvelApp();
+	}
+}
