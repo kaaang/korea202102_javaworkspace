@@ -102,15 +102,36 @@ public class ChatClient extends JFrame{
 		//대화 이외에 서버에 데이터를 전송할때는 어떻게 해야하나?
 		//서버에 보내려고 하는 데이터에 각종 의미를 부여하되, 정현적, 구조화된, 많이 알려진 형태의 데이터를
 		//구성하는게 
-		msgThread.send(member.getUser_Id() + ":" +msg);
+		
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("{");
+		sb.append("\"cmd\" : \"chat\",");
+		sb.append("\"message\" : \""+msg+"\",");		
+		sb.append("}");
+		
+		
+		
+		
+		
+		
+		msgThread.send(sb.toString());
 		t_input.setText("");
 	}
 	
 	//1)채팅 서버에 회원의 모든 정보를 실어서 보내는 방법
 	public void sendAllData() {
 		StringBuilder sb = new StringBuilder();
+		sb.append("{");
+		sb.append("\"cmd\" : \"login\",");
+		sb.append("\"member\":{");
+		sb.append("\"user_id\" :  \""+member.getUser_Id()+"\",");
+		sb.append("\"name\" :\""+member.getName()+"\",");
+		sb.append("\"regdate\" :\""+member.getRegdate()+"\"");
+		sb.append("}");
+		sb.append("}");
 		
-		//서버에 메시지 전송
+		//서버에 메시지 전송 
 		msgThread.send(sb.toString());
 		
 	}
