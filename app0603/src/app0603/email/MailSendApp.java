@@ -29,6 +29,7 @@ public class MailSendApp extends JFrame{
 	JTextArea area;
 	JButton bt;
 	Properties props;//키와 벨류 쌍으로 데이터를 처리하는 Map컬렉션 중 api중 하나
+	Thread mailThread;
 	
 	public MailSendApp() {
 		t_receiver = new JTextField(25);
@@ -48,7 +49,12 @@ public class MailSendApp extends JFrame{
 		
 		bt.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				sendMail();
+				mailThread = new Thread() {
+					public void run() {
+						sendMail();					
+					}
+				};
+				mailThread.start();
 			}
 		});
 		setSize(300, 400);
@@ -61,6 +67,7 @@ public class MailSendApp extends JFrame{
 		props.put("mail.smtp.host", "smtp.gmail.com");//smtp서버 주소 작성
 		props.put("mail.smtp.host.port", 465);//smtp서버 주소 작성
 		props.put("mail.smtp.auth", "true");//smtp서버 주소 작성
+		props.put("mail.smtp.ssl.enable", "true");
 		props.put("mail.smtp.ssl.trust", "smtp.gmail.com");//smtp서버 주소 작성
 		
 		//세션 객체 생성(java mail api 에 Session)
@@ -69,7 +76,7 @@ public class MailSendApp extends JFrame{
 			//구글 개인 설정에서 생성된 앱비밀번호를 메일에서 사용할 수 있다.
 			protected PasswordAuthentication getPasswordAuthentication() {
 
-				return new PasswordAuthentication("", "");
+				return new PasswordAuthentication("kangsh950309@gmail.com", "ujfvrqsenoqxwykz");
 			}
 		});
 		
@@ -80,6 +87,7 @@ public class MailSendApp extends JFrame{
 			message.addRecipient(Message.RecipientType.TO ,new InternetAddress(t_receiver.getText()) );//받는자 주소
 			message.setSubject(t_title.getText());//메일 주소
 			message.setContent(area.getText(), "text/html;charset=utf8");
+			message.setText(area.getText());
 			Transport.send(message);
 		} catch (AddressException e) {
 			e.printStackTrace();
